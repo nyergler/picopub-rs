@@ -8,6 +8,15 @@ use std::str::FromStr;
 use serde::de::{self, Deserialize, Deserializer, SeqAccess, Visitor};
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type", content = "properties")]
+pub enum MFEntry {
+
+    #[serde(rename = "h-entry")]
+    Entry(EntryProps),
+    Unknown,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Entry {
     #[serde(rename = "type", deserialize_with = "string_or_array")]
     entry_type: String,
@@ -86,9 +95,12 @@ mod tests {
             }
         }"#;
 
-        let entry: mf::Entry = serde_json::from_str(input_json).unwrap();
-        assert_eq!(entry.properties.content, "hello world");
-        assert_eq!(entry.properties.categories, ["foo", "bar"]);
+        let entry: mf::MFEntry = serde_json::from_str(input_json).unwrap();
+        if let mf::MFEntry::Entry(e) = entry {
+        assert_eq!(e.content, "hello world");
+        assert_eq!(e.categories, ["foo", "bar"]);
+            
+        }
     }
 
     #[test]
